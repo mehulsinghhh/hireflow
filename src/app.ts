@@ -1,9 +1,23 @@
 import express from "express";
 import { prisma } from "./lib/prisma.js";
+import { errorHandler } from "./middleware/errorHandler.js";
+import authRouter from "./routes/auth.js";
+import { authenticate, authorizeRole, AuthenticatedRequest } from "./middleware/auth.js";
+import { validateBody } from "./middleware/validate.js";
+import { createCompanySchema } from "./validators/companyValidator.js";
+import companyRouter from "./routes/company.js";
+import jobRouter from "./routes/job.js";
+
 
 const app = express();
 
 app.use(express.json());
+
+app.use("/api/jobs", jobRouter);
+
+app.use("/api/auth", authRouter);
+
+app.use("/api/companies", companyRouter);
 
 app.get("/health", (_req, res) => {
   res.json({
@@ -12,239 +26,106 @@ app.get("/health", (_req, res) => {
   });
 });
 
-app.post("/api/jobs", async (req, res) => {
-  const { title, companyId, description, location } = req.body;
 
-  const company = await prisma.company.findUnique({
-    where: { id: companyId },
-  });
-
-  if (!company) {
-    res.status(404).json({
-      error: "Company not found",
-    });
-    return;
-  }
-
-  const job = await prisma.job.create({
-    data: {
-      title,
-      companyId,
-      description,
-      location,
-    },
-    include: {
-      company: true,
-    },
-  });
-
-  res.status(201).json(job);
-});
-
-
-app.get("/api/jobs", async (req, res) => {
-  const jobs = await prisma.job.findMany({
-    include: {
-      company: true,
-    },
-  });
-
-  res.status(200).json(jobs);
-});
-
-
-app.get("/api/jobs/:id", async (req, res) => {
-  const { id } = req.params;
-
-  const job = await prisma.job.findUnique({
-    where: { id },
-    include: {
-      company: true,
-    },
-  });
-
-  if (!job) {
-    res.status(404).json({
-      error: "Job not found",
-    });
-    return;
-  }
-
-  res.status(200).json(job);
-});
-
-
-app.patch("/api/jobs/:id", async (req, res) => {
-  const { id } = req.params;
-  const { title, companyId, description, location } = req.body;
-
-  const existingJob = await prisma.job.findUnique({
-    where: { id },
-  });
-
-  if (!existingJob) {
-    res.status(404).json({
-      error: "Job not found",
-    });
-    return;
-  }
-
-  if (companyId) {
-    const company = await prisma.company.findUnique({
-      where: { id: companyId },
-    });
-
-    if (!company) {
-      res.status(404).json({
-        error: "Company not found",
-      });
-      return;
-    }
-  }
-
-  const job = await prisma.job.update({
-    where: { id },
-    data: {
-      ...(title !== undefined && { title }),
-      ...(companyId !== undefined && { companyId }),
-      ...(description !== undefined && { description }),
-      ...(location !== undefined && { location }),
-    },
-    include: {
-      company: true,
-    },
-  });
-
-  res.status(200).json(job);
-});
-
-
-app.delete("/api/jobs/:id", async (req, res) => {
-  const { id } = req.params;
-
-  const existingJob = await prisma.job.findUnique({
-    where: { id },
-  });
-
-  if (!existingJob) {
-    res.status(404).json({
-      error: "Job not found",
-    });
-    return;
-  }
-
-  await prisma.job.delete({
-    where: { id },
-  });
-
-  res.status(204).send();
-});
-
-
-app.post("/api/companies", async (req, res) => {
-  const { name, description } = req.body;
-
-  const company = await prisma.company.create({
-    data: {
-      name,
-      description,
-    },
-  });
-
-  res.status(201).json(company);
-});
-
-app.get("/api/companies", async (req, res) => {
-  const companies = await prisma.company.findMany();
-
-  res.status(200).json(companies);
-});
-
-
-app.get("/api/companies/:id", async (req, res) => {
-  const { id } = req.params;
-
-  const company = await prisma.company.findUnique({
-    where: { id },
-  });
-
-  if (!company) {
-    res.status(404).json({
-      error: "Company not found",
-    });
-    return;
-  }
-
-  res.status(200).json(company);
-});
-
-
-app.patch("/api/companies/:id", async (req, res) => {
-  const { id } = req.params;
-  const { name, description } = req.body;
-
-  const existingCompany = await prisma.company.findUnique({
-    where: { id },
-  });
-
-  if (!existingCompany) {
-    res.status(404).json({
-      error: "Company not found",
-    });
-    return;
-  }
-
-  const company = await prisma.company.update({
-    where: { id },
-    data: {
-      name,
-      description,
-    },
-  });
-
-  res.status(200).json(company);
-});
-
-
-app.delete("/api/companies/:id", async (req, res) => {
-  const { id } = req.params;
-
-  const existingCompany = await prisma.company.findUnique({
-    where: { id },
-  });
-
-  if (!existingCompany) {
-    res.status(404).json({
-      error: "Company not found",
-    });
-    return;
-  }
-
-  await prisma.company.delete({
-    where: { id },
-  });
-
-  res.status(204).send();
-});
-
-
-app.post("/api/applications", async (req, res) => {
+app.post("/api/applications", async (req, res, next) => {
   try {
     const { candidateId, jobId } = req.body;
+
+    if (
+      typeof candidateId !== "string" ||
+      typeof jobId !== "string" ||
+      !candidateId ||
+      !jobId
+    ) {
+      return res.status(400).json({
+        error: "candidateId and jobId are required",
+      });
+    }
 
     const application = await prisma.application.create({
       data: {
         candidateId,
         jobId,
       },
+      include: {
+        candidate: true,
+        job: {
+          include: {
+            company: true,
+          },
+        },
+      },
     });
 
     res.status(201).json(application);
   } catch (error) {
-    res.status(400).json({
-      error: "Could not create application",
+    next(error);
+  }
+});
+
+app.get("/api/applications", async (req, res) => {
+  try {
+    const applications = await prisma.application.findMany({
+      include: {
+        candidate: true,
+        job: {
+          include: {
+            company: true,
+          },
+        },
+      },
+    });
+
+    res.status(200).json(applications);
+  } catch (error) {
+    res.status(500).json({
+      error: "Could not fetch applications",
     });
   }
 });
+
+
+app.get("/api/applications/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const application = await prisma.application.findUnique({
+      where: { id },
+      include: {
+        candidate: true,
+        job: {
+          include: {
+            company: true,
+          },
+        },
+      },
+    });
+
+    if (!application) {
+      return res.status(404).json({
+        error: "Application not found",
+      });
+    }
+
+    res.status(200).json(application);
+  } catch (error) {
+    res.status(500).json({
+      error: "Could not fetch application",
+    });
+  }
+});
+
+app.get(
+  "/api/me",
+  authenticate,
+  (req: AuthenticatedRequest, res) => {
+    res.status(200).json({
+      message: "Authenticated successfully",
+      user: req.user,
+    });
+  }
+);
+
+app.use(errorHandler);
 
 export default app;
