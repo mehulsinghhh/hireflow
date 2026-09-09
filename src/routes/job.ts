@@ -12,6 +12,7 @@ import {
   createJobSchema,
   updateJobSchema,
 } from "../validators/jobValidator.js";
+import { getApplicationsForJob } from "../services/applicationService.js";
 
 const router = Router();
 
@@ -50,6 +51,31 @@ router.get("/:id", async (req: Request<{ id: string }>, res) => {
 
   res.status(200).json(job);
 });
+
+router.get(
+  "/:jobId/applications",
+  authenticate,
+  authorizeRole("RECRUITER", "ADMIN"),
+  async (req, res, next) => {
+    try {
+     const jobId = Array.isArray(req.params.jobId)
+  ? req.params.jobId[0]
+  : req.params.jobId;
+
+const applications = await getApplicationsForJob(jobId);
+
+      res.status(200).json(applications);
+    } catch (error) {
+      if (error instanceof Error && error.message === "JOB_NOT_FOUND") {
+        return res.status(404).json({
+          error: "Job not found",
+        });
+      }
+
+      next(error);
+    }
+  }
+);
 
 router.post(
   "/",
