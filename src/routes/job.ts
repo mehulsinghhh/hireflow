@@ -6,7 +6,7 @@ import {
   updateJob,
   deleteJob,
 } from "../services/jobService.js";
-import { authenticate, authorizeRole } from "../middleware/auth.js";
+import { authenticate, authorizeRole, AuthenticatedRequest } from "../middleware/auth.js";
 import { validateBody } from "../middleware/validate.js";
 import {
   createJobSchema,
@@ -82,17 +82,30 @@ router.post(
   authenticate,
   authorizeRole("RECRUITER", "ADMIN"),
   validateBody(createJobSchema),
-  async (req, res) => {
-    const { title, description, location, companyId } = req.body;
+  async (req: AuthenticatedRequest, res, next) => {
+    try {
+      const { title, description, location, companyId } = req.body;
 
-    const job = await createJob(
-      title,
-      description,
-      location,
-      companyId
-    );
+      const recruiterId = req.user?.userId;
 
-    res.status(201).json(job);
+      if (!recruiterId) {
+        return res.status(401).json({
+          error: "Authentication required",
+        });
+      }
+
+      const job = await createJob(
+        title,
+        description,
+        location,
+        companyId,
+        recruiterId
+      );
+
+      res.status(201).json(job);
+    } catch (error) {
+      next(error);
+    }
   }
 );
 
@@ -101,28 +114,81 @@ router.patch(
   authenticate,
   authorizeRole("RECRUITER", "ADMIN"),
   validateBody(updateJobSchema),
-  async (req: Request<{ id: string }>, res) => {
-    const { title, description, location } = req.body;
+  async (req: AuthenticatedRequest<{ id: string }>, res, next) => {
+    try {
+      const { id } = req.params;
+      const { title, description, location } = req.body;
 
-    const job = await updateJob(
-      req.params.id,
-      title,
-      description,
-      location
-    );
+      if (!req.user) {
+        return res.status(401).json({
+          error: "Authentication required",
+        });
+      }
 
-    res.status(200).json(job);
+      const job = await updateJob(
+        id,
+        title,
+        description,
+        location,
+        req.user.userId,
+        req.user.role
+      );
+
+      res.status(200).json(job);
+    } catch (error) {
+      if (error instanceof Error && error.message === "JOB_NOT_FOUND") {
+        return res.status(404).json({
+          error: "Job not found",
+        });
+      }
+
+      if (error instanceof Error && error.message === "JOB_FORBIDDEN") {
+        return res.status(403).json({
+          error: "You do not own this job",
+        });
+      }
+
+      next(error);
+    }
   }
 );
 
 router.delete(
   "/:id",
   authenticate,
-  authorizeRole("ADMIN"),
-  async (req: Request<{ id: string }>, res) => {
-    await deleteJob(req.params.id);
+  authorizeRole("RECRUITER", "ADMIN"),
+  async (req: AuthenticatedRequest<{ id: string }>, res, next) => {
+    try {
+      const { id } = req.params;
 
-    res.status(204).send();
+      if (!req.user) {
+        return res.status(401).json({
+          error: "Authentication required",
+        });
+      }
+
+      await deleteJob(
+        id,
+        req.user.userId,
+        req.user.role
+      );
+
+      res.status(204).send();
+    } catch (error) {
+      if (error instanceof Error && error.message === "JOB_NOT_FOUND") {
+        return res.status(404).json({
+          error: "Job not found",
+        });
+      }
+
+      if (error instanceof Error && error.message === "JOB_FORBIDDEN") {
+        return res.status(403).json({
+          error: "You do not own this job",
+        });
+      }
+
+      next(error);
+    }
   }
 );
 

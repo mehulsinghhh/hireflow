@@ -27,6 +27,7 @@ model User {
   passwordHash String
   role         UserRole      @default(CANDIDATE)
   applications Application[]
+  jobs         Job[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 }
@@ -46,12 +47,15 @@ model Job {
   description  String
   location     String
   companyId    String
+  recruiterId  String?
   company      Company       @relation(fields: [companyId], references: [id])
+  recruiter    User?         @relation(fields: [recruiterId], references: [id])
   applications Application[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 
   @@index([companyId])
+  @@index([recruiterId])
 }
 
 model Application {

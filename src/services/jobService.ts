@@ -4,7 +4,8 @@ export async function createJob(
   title: string,
   description: string,
   location: string,
-  companyId: string
+  companyId: string,
+  recruiterId: string
 ) {
   return prisma.job.create({
     data: {
@@ -12,6 +13,7 @@ export async function createJob(
       description,
       location,
       companyId,
+      recruiterId,
     },
     include: {
       company: true,
@@ -82,10 +84,27 @@ export async function getJobById(id: string) {
 
 export async function updateJob(
   id: string,
-  title?: string,
-  description?: string,
-  location?: string
+  title: string | undefined,
+  description: string | undefined,
+  location: string | undefined,
+  userId: string,
+  role: "CANDIDATE" | "RECRUITER" | "ADMIN"
 ) {
+  const job = await prisma.job.findUnique({
+    where: { id },
+  });
+
+  if (!job) {
+    throw new Error("JOB_NOT_FOUND");
+  }
+
+  if (
+  role !== "ADMIN" &&
+  (role !== "RECRUITER" || job.recruiterId !== userId)
+) {
+    throw new Error("JOB_FORBIDDEN");
+  }
+
   return prisma.job.update({
     where: { id },
     data: {
@@ -99,7 +118,26 @@ export async function updateJob(
   });
 }
 
-export async function deleteJob(id: string) {
+export async function deleteJob(
+  id: string,
+  userId: string,
+  role: "CANDIDATE" | "RECRUITER" | "ADMIN"
+) {
+  const job = await prisma.job.findUnique({
+    where: { id },
+  });
+
+  if (!job) {
+    throw new Error("JOB_NOT_FOUND");
+  }
+
+  if (
+  role !== "ADMIN" &&
+  (role !== "RECRUITER" || job.recruiterId !== userId)
+) {
+    throw new Error("JOB_FORBIDDEN");
+  }
+
   return prisma.job.delete({
     where: { id },
   });

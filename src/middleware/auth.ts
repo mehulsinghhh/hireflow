@@ -5,7 +5,9 @@ const JWT_SECRET: string = process.env.JWT_SECRET ?? (() => {
   throw new Error("JWT_SECRET is not configured");
 })();
 
-export interface AuthenticatedRequest extends Request {
+export interface AuthenticatedRequest<
+  Params = Record<string, string>
+> extends Request<Params> {
   user?: {
     userId: string;
     role: "CANDIDATE" | "RECRUITER" | "ADMIN";
