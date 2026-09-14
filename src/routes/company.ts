@@ -1,11 +1,23 @@
-import { Router, Request } from "express";
+import {
+  Router,
+  Request,
+  Response,
+  NextFunction,
+} from "express";
+
 import {
   authenticate,
   authorizeRole,
   AuthenticatedRequest,
 } from "../middleware/auth.js";
+
 import { validateBody } from "../middleware/validate.js";
-import { createCompanySchema } from "../validators/companyValidator.js";
+
+import {
+  createCompanySchema,
+  updateCompanySchema,
+} from "../validators/companyValidator.js";
+
 import {
   createCompany,
   getCompanies,
@@ -21,47 +33,92 @@ router.post(
   authenticate,
   authorizeRole("RECRUITER", "ADMIN"),
   validateBody(createCompanySchema),
-  async (req: AuthenticatedRequest, res) => {
-    const { name, description } = req.body;
+  async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { name, description } = req.body;
 
-    const company = await createCompany(name, description);
+      const company = await createCompany(
+        name,
+        description
+      );
 
-    res.status(201).json(company);
+      res.status(201).json(company);
+    } catch (error) {
+      next(error);
+    }
   }
 );
 
-router.get("/", async (_req, res) => {
-  const companies = await getCompanies();
+router.get(
+  "/",
+  async (
+    _req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const companies = await getCompanies();
 
-  res.status(200).json(companies);
-});
-
-router.get("/:id", async (req, res) => {
-  const company = await getCompanyById(req.params.id);
-
-  if (!company) {
-    return res.status(404).json({
-      error: "Company not found",
-    });
+      res.status(200).json(companies);
+    } catch (error) {
+      next(error);
+    }
   }
+);
 
-  res.status(200).json(company);
-});
+router.get(
+  "/:id",
+  async (
+    req: Request<{ id: string }>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params;
+
+      const company = await getCompanyById(id);
+
+      if (!company) {
+        return res.status(404).json({
+          error: "Company not found",
+        });
+      }
+
+      res.status(200).json(company);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
 router.patch(
   "/:id",
   authenticate,
   authorizeRole("RECRUITER", "ADMIN"),
-  async (req: Request<{ id: string }>, res) => {
-    const { name, description } = req.body;
-    const { id } = req.params;
-    const company = await updateCompany(
-      req.params.id,
-      name,
-      description
-    );
+  validateBody(updateCompanySchema),
+  async (
+    req: Request<{ id: string }>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params;
+      const { name, description } = req.body;
 
-    res.status(200).json(company);
+      const company = await updateCompany(
+        id,
+        name,
+        description
+      );
+
+      res.status(200).json(company);
+    } catch (error) {
+      next(error);
+    }
   }
 );
 
@@ -69,10 +126,20 @@ router.delete(
   "/:id",
   authenticate,
   authorizeRole("ADMIN"),
-  async (req: Request<{ id: string }>, res) => {
-    await deleteCompany(req.params.id);
+  async (
+    req: Request<{ id: string }>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params;
 
-    res.status(204).send();
+      await deleteCompany(id);
+
+      res.status(204).send();
+    } catch (error) {
+      next(error);
+    }
   }
 );
 

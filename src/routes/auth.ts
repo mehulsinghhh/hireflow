@@ -8,7 +8,7 @@ const router = Router();
 
 router.post("/register", async (req, res, next) => {
   try {
-    const { email, password, role } = req.body;
+    const { email, password } = req.body;
 
     if (
       typeof email !== "string" ||
@@ -27,7 +27,7 @@ router.post("/register", async (req, res, next) => {
       });
     }
 
-    const user = await registerUser(email, password, role);
+    const user = await registerUser(email, password );
 
     res.status(201).json(user);
   } catch (error: any) {

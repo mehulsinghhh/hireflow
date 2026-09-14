@@ -1,4 +1,5 @@
 import { prisma } from "../lib/prisma.js";
+import { companyPublicSelect } from "../lib/selects.js";
 
 export async function createCompany(
   name: string,
@@ -9,11 +10,13 @@ export async function createCompany(
       name,
       description,
     },
+    select: companyPublicSelect,
   });
 }
 
 export async function getCompanies() {
   return prisma.company.findMany({
+    select: companyPublicSelect,
     orderBy: {
       createdAt: "desc",
     },
@@ -22,7 +25,10 @@ export async function getCompanies() {
 
 export async function getCompanyById(id: string) {
   return prisma.company.findUnique({
-    where: { id },
+    where: {
+      id,
+    },
+    select: companyPublicSelect,
   });
 }
 
@@ -32,16 +38,23 @@ export async function updateCompany(
   description?: string
 ) {
   return prisma.company.update({
-    where: { id },
-    data: {
-      ...(name !== undefined && { name }),
-      ...(description !== undefined && { description }),
+    where: {
+      id,
     },
+    data: {
+      ...(name !== undefined ? { name } : {}),
+      ...(description !== undefined
+        ? { description }
+        : {}),
+    },
+    select: companyPublicSelect,
   });
 }
 
 export async function deleteCompany(id: string) {
-  return prisma.company.delete({
-    where: { id },
+  await prisma.company.delete({
+    where: {
+      id,
+    },
   });
 }

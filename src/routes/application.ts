@@ -1,10 +1,25 @@
-import { Router, Request, Response, NextFunction } from "express";
+import {
+  Router,
+  Request,
+  Response,
+  NextFunction,
+} from "express";
 import { prisma } from "../lib/prisma.js";
 import {
   authenticate,
   authorizeRole,
   AuthenticatedRequest,
 } from "../middleware/auth.js";
+import { validateBody } from "../middleware/validate.js";
+import {
+  createApplicationSchema,
+  updateApplicationStatusSchema,
+} from "../validators/applicationValidator.js";
+import {
+  getApplicationsForJob,
+  updateApplicationStatus,
+} from "../services/applicationService.js";
+import { applicationPublicSelect } from "../lib/selects.js";
 
 const router = Router();
 
@@ -12,18 +27,22 @@ router.post(
   "/",
   authenticate,
   authorizeRole("CANDIDATE"),
-  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  validateBody(createApplicationSchema),
+  async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       const { jobId } = req.body;
 
-      if (typeof jobId !== "string" || !jobId) {
-        return res.status(400).json({
-          error: "jobId is required",
-        });
-      }
-
       const job = await prisma.job.findUnique({
-        where: { id: jobId },
+        where: {
+          id: jobId,
+        },
+        select: {
+          id: true,
+        },
       });
 
       if (!job) {
@@ -32,14 +51,18 @@ router.post(
         });
       }
 
-      const existingApplication = await prisma.application.findUnique({
-        where: {
-          candidateId_jobId: {
-            candidateId: req.user!.userId,
-            jobId,
+      const existingApplication =
+        await prisma.application.findUnique({
+          where: {
+            candidateId_jobId: {
+              candidateId: req.user!.userId,
+              jobId,
+            },
           },
-        },
-      });
+          select: {
+            id: true,
+          },
+        });
 
       if (existingApplication) {
         return res.status(409).json({
@@ -47,20 +70,14 @@ router.post(
         });
       }
 
-      const application = await prisma.application.create({
-        data: {
-          candidateId: req.user!.userId,
-          jobId,
-        },
-        include: {
-          candidate: true,
-          job: {
-            include: {
-              company: true,
-            },
+      const application =
+        await prisma.application.create({
+          data: {
+            candidateId: req.user!.userId,
+            jobId,
           },
-        },
-      });
+          select: applicationPublicSelect,
+        });
 
       res.status(201).json(application);
     } catch (error) {
@@ -73,30 +90,22 @@ router.get(
   "/me",
   authenticate,
   authorizeRole("CANDIDATE"),
-  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
-      const applications = await prisma.application.findMany({
-        where: {
-          candidateId: req.user!.userId,
-        },
-        include: {
-          candidate: {
-            select: {
-              id: true,
-              email: true,
-              role: true,
-            },
+      const applications =
+        await prisma.application.findMany({
+          where: {
+            candidateId: req.user!.userId,
           },
-          job: {
-            include: {
-              company: true,
-            },
+          select: applicationPublicSelect,
+          orderBy: {
+            createdAt: "desc",
           },
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-      });
+        });
 
       res.status(200).json(applications);
     } catch (error) {
@@ -109,24 +118,78 @@ router.get(
   "/",
   authenticate,
   authorizeRole("ADMIN"),
-  async (_req: Request, res: Response, next: NextFunction) => {
+  async (
+    _req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
-      const applications = await prisma.application.findMany({
-        include: {
-          candidate: true,
-          job: {
-            include: {
-              company: true,
-            },
+      const applications =
+        await prisma.application.findMany({
+          select: applicationPublicSelect,
+          orderBy: {
+            createdAt: "desc",
           },
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-      });
+        });
 
       res.status(200).json(applications);
     } catch (error) {
+      next(error);
+    }
+  }
+);
+
+router.patch(
+  "/:id/status",
+  authenticate,
+  authorizeRole("RECRUITER", "ADMIN"),
+  validateBody(updateApplicationStatusSchema),
+  async (
+    req: AuthenticatedRequest<{ id: string }>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+
+      const application =
+        await updateApplicationStatus(
+          id,
+          status,
+          req.user!.userId,
+          req.user!.role
+        );
+
+      res.status(200).json(application);
+    } catch (error) {
+      if (error instanceof Error) {
+        if (
+          error.message === "APPLICATION_NOT_FOUND"
+        ) {
+          return res.status(404).json({
+            error: "Application not found",
+          });
+        }
+
+        if (error.message === "FORBIDDEN") {
+          return res.status(403).json({
+            error:
+              "You do not have access to this application",
+          });
+        }
+
+        if (
+          error.message ===
+          "INVALID_STATUS_TRANSITION"
+        ) {
+          return res.status(400).json({
+            error:
+              "Invalid application status transition",
+          });
+        }
+      }
+
       next(error);
     }
   }
@@ -136,24 +199,28 @@ router.get(
   "/:id",
   authenticate,
   async (
-    req: AuthenticatedRequest & Request<{ id: string }>,
+    req: AuthenticatedRequest<{ id: string }>,
     res: Response,
     next: NextFunction
   ) => {
     try {
       const { id } = req.params;
 
-      const application = await prisma.application.findUnique({
-        where: { id },
-        include: {
-          candidate: true,
-          job: {
-            include: {
-              company: true,
+      const application =
+        await prisma.application.findUnique({
+          where: {
+            id,
+          },
+          select: {
+            ...applicationPublicSelect,
+            job: {
+              select: {
+                ...applicationPublicSelect.job.select,
+                recruiterId: true,
+              },
             },
           },
-        },
-      });
+        });
 
       if (!application) {
         return res.status(404).json({
@@ -165,15 +232,27 @@ router.get(
         req.user!.role === "CANDIDATE" &&
         application.candidateId === req.user!.userId;
 
+      const isRecruiter =
+        req.user!.role === "RECRUITER" &&
+        application.job.recruiterId === req.user!.userId;
+
       const isAdmin = req.user!.role === "ADMIN";
 
-      if (!isCandidate && !isAdmin) {
+      if (!isCandidate && !isRecruiter && !isAdmin) {
         return res.status(403).json({
           error: "Forbidden",
         });
       }
 
-      res.status(200).json(application);
+      const {
+        recruiterId: _recruiterId,
+        ...safeJob
+      } = application.job;
+
+      res.status(200).json({
+        ...application,
+        job: safeJob,
+      });
     } catch (error) {
       next(error);
     }

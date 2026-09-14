@@ -10,7 +10,7 @@ const JWT_SECRET: string = process.env.JWT_SECRET ?? (() => {
 export async function registerUser(
   email: string,
   password: string,
-  role: "CANDIDATE" | "RECRUITER" | "ADMIN" = "CANDIDATE"
+  
 ) {
   const existingUser = await prisma.user.findUnique({
     where: { email },
@@ -26,7 +26,7 @@ export async function registerUser(
     data: {
       email,
       passwordHash,
-      role,
+      
     },
     select: {
       id: true,

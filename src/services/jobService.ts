@@ -1,4 +1,5 @@
 import { prisma } from "../lib/prisma.js";
+import { jobPublicSelect } from "../lib/selects.js";
 
 export async function createJob(
   title: string,
@@ -15,9 +16,7 @@ export async function createJob(
       companyId,
       recruiterId,
     },
-    include: {
-      company: true,
-    },
+    select: jobPublicSelect,
   });
 }
 
@@ -48,9 +47,7 @@ export async function getJobs(options: {
       where,
       skip,
       take: limit,
-      include: {
-        company: true,
-      },
+      select: jobPublicSelect,
       orderBy: {
         createdAt: "desc",
       },
@@ -74,11 +71,10 @@ export async function getJobs(options: {
 
 export async function getJobById(id: string) {
   return prisma.job.findUnique({
-    where: { id },
-    include: {
-      company: true,
-      applications: true,
+    where: {
+      id,
     },
+    select: jobPublicSelect,
   });
 }
 
@@ -91,7 +87,13 @@ export async function updateJob(
   role: "CANDIDATE" | "RECRUITER" | "ADMIN"
 ) {
   const job = await prisma.job.findUnique({
-    where: { id },
+    where: {
+      id,
+    },
+    select: {
+      id: true,
+      recruiterId: true,
+    },
   });
 
   if (!job) {
@@ -99,22 +101,25 @@ export async function updateJob(
   }
 
   if (
-  role !== "ADMIN" &&
-  (role !== "RECRUITER" || job.recruiterId !== userId)
-) {
+    role !== "ADMIN" &&
+    (role !== "RECRUITER" ||
+      job.recruiterId !== userId)
+  ) {
     throw new Error("JOB_FORBIDDEN");
   }
 
   return prisma.job.update({
-    where: { id },
+    where: {
+      id,
+    },
     data: {
       ...(title !== undefined ? { title } : {}),
-      ...(description !== undefined ? { description } : {}),
+      ...(description !== undefined
+        ? { description }
+        : {}),
       ...(location !== undefined ? { location } : {}),
     },
-    include: {
-      company: true,
-    },
+    select: jobPublicSelect,
   });
 }
 
@@ -124,7 +129,13 @@ export async function deleteJob(
   role: "CANDIDATE" | "RECRUITER" | "ADMIN"
 ) {
   const job = await prisma.job.findUnique({
-    where: { id },
+    where: {
+      id,
+    },
+    select: {
+      id: true,
+      recruiterId: true,
+    },
   });
 
   if (!job) {
@@ -132,13 +143,16 @@ export async function deleteJob(
   }
 
   if (
-  role !== "ADMIN" &&
-  (role !== "RECRUITER" || job.recruiterId !== userId)
-) {
+    role !== "ADMIN" &&
+    (role !== "RECRUITER" ||
+      job.recruiterId !== userId)
+  ) {
     throw new Error("JOB_FORBIDDEN");
   }
 
-  return prisma.job.delete({
-    where: { id },
+  await prisma.job.delete({
+    where: {
+      id,
+    },
   });
 }

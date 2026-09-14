@@ -11,3 +11,22 @@ export const createCompanySchema = z.object({
     .max(1000, "Description must be at most 1000 characters")
     .optional(),
 });
+
+export const updateCompanySchema = z.object({
+  name: z
+    .string()
+    .min(2, "Company name must be at least 2 characters")
+    .max(
+      100,
+      "Company name must be at most 100 characters"
+    )
+    .optional(),
+
+  description: z
+    .string()
+    .max(
+      1000,
+      "Description must be at most 1000 characters"
+    )
+    .optional(),
+});
