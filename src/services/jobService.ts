@@ -1,5 +1,10 @@
 import { prisma } from "../lib/prisma.js";
 import { jobPublicSelect } from "../lib/selects.js";
+import {
+  getCache,
+  setCache,
+  deleteCacheByPattern,
+} from "./cacheService.js";
 
 export async function createJob(
   title: string,
@@ -8,7 +13,7 @@ export async function createJob(
   companyId: string,
   recruiterId: string
 ) {
-  return prisma.job.create({
+  const job = await prisma.job.create({
     data: {
       title,
       description,
@@ -18,6 +23,10 @@ export async function createJob(
     },
     select: jobPublicSelect,
   });
+
+  await deleteCacheByPattern("jobs:*");
+
+  return job;
 }
 
 export async function getJobs(options: {
@@ -27,6 +36,30 @@ export async function getJobs(options: {
   companyId?: string;
 }) {
   const { page, limit, location, companyId } = options;
+
+  const cacheKey = `jobs:${JSON.stringify({
+  page,
+  limit,
+  location: location ?? null,
+  companyId: companyId ?? null,
+})}`;
+
+const cached = await getCache<{
+  jobs: unknown[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}>(cacheKey);
+
+if (cached) {
+  console.log(`Redis cache HIT: ${cacheKey}`);
+  return cached;
+}
+
+console.log(`Redis cache MISS: ${cacheKey}`);
 
   const skip = (page - 1) * limit;
 
@@ -58,15 +91,19 @@ export async function getJobs(options: {
     }),
   ]);
 
-  return {
-    jobs,
-    pagination: {
-      page,
-      limit,
-      total,
-      totalPages: Math.ceil(total / limit),
-    },
-  };
+  const result = {
+  jobs,
+  pagination: {
+    page,
+    limit,
+    total,
+    totalPages: Math.ceil(total / limit),
+  },
+};
+
+await setCache(cacheKey, result);
+
+return result;
 }
 
 export async function getJobById(id: string) {
@@ -108,19 +145,23 @@ export async function updateJob(
     throw new Error("JOB_FORBIDDEN");
   }
 
-  return prisma.job.update({
-    where: {
-      id,
-    },
-    data: {
-      ...(title !== undefined ? { title } : {}),
-      ...(description !== undefined
-        ? { description }
-        : {}),
-      ...(location !== undefined ? { location } : {}),
-    },
-    select: jobPublicSelect,
-  });
+const updatedJob = await prisma.job.update({
+  where: {
+    id,
+  },
+  data: {
+    ...(title !== undefined ? { title } : {}),
+    ...(description !== undefined
+      ? { description }
+      : {}),
+    ...(location !== undefined ? { location } : {}),
+  },
+  select: jobPublicSelect,
+});
+
+await deleteCacheByPattern("jobs:*");
+
+return updatedJob;
 }
 
 export async function deleteJob(
@@ -150,9 +191,11 @@ export async function deleteJob(
     throw new Error("JOB_FORBIDDEN");
   }
 
-  await prisma.job.delete({
-    where: {
-      id,
-    },
-  });
+await prisma.job.delete({
+  where: {
+    id,
+  },
+});
+
+await deleteCacheByPattern("jobs:*");
 }
