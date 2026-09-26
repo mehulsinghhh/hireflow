@@ -1,13 +1,16 @@
 import app from "./app.js";
 import { connectRedis, redis } from "./lib/redis.js";
+import { applicationWorker } from "./workers/applicationWorker.js";
 
 const PORT = process.env.PORT || 3000;
 
 async function startServer() {
   try {
     await connectRedis();
-
     console.log("Redis connected");
+
+    await applicationWorker.waitUntilReady();
+    console.log("Application worker ready");
 
     const server = app.listen(PORT, () => {
       console.log(`HireFlow API running on port ${PORT}`);
@@ -18,11 +21,15 @@ async function startServer() {
 
       server.close(async () => {
         try {
+          await applicationWorker.close();
           await redis.quit();
+
+          console.log("Application worker closed");
           console.log("Redis connection closed");
+
           process.exit(0);
         } catch (error) {
-          console.error("Error while closing Redis:", error);
+          console.error("Error during shutdown:", error);
           process.exit(1);
         }
       });

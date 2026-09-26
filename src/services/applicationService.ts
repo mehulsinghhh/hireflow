@@ -1,5 +1,6 @@
 import { prisma } from "../lib/prisma.js";
 import { applicationPublicSelect } from "../lib/selects.js";
+import { enqueueApplicationCreated , enqueueApplicationStatusChanged, } from "../queues/applicationQueue.js";
 
 type UserRole = "CANDIDATE" | "RECRUITER" | "ADMIN";
 
@@ -9,6 +10,66 @@ type ApplicationStatus =
   | "INTERVIEW"
   | "REJECTED"
   | "HIRED";
+
+  type ApplicationStatusChange = Exclude<
+  ApplicationStatus,
+  "APPLIED"
+>;
+
+  export async function createApplication(
+  candidateId: string,
+  jobId: string
+) {
+  const job = await prisma.job.findUnique({
+    where: {
+      id: jobId,
+    },
+    select: {
+      id: true,
+      recruiterId: true,
+    },
+  });
+
+  if (!job) {
+    throw new Error("JOB_NOT_FOUND");
+  }
+
+  const existingApplication =
+    await prisma.application.findUnique({
+      where: {
+        candidateId_jobId: {
+          candidateId,
+          jobId,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+  if (existingApplication) {
+    throw new Error("APPLICATION_ALREADY_EXISTS");
+  }
+
+  const application = await prisma.application.create({
+    data: {
+      candidateId,
+      jobId,
+    },
+    select: applicationPublicSelect,
+  });
+
+  try {
+  await enqueueApplicationCreated(application.id);
+} catch (error) {
+  console.error(
+    "Failed to enqueue application-created event:",
+    error
+  );
+}
+
+  return application;
+}
 
 export async function getApplicationsForJob(
   jobId: string,
@@ -46,7 +107,7 @@ export async function getApplicationsForJob(
 
 export async function updateApplicationStatus(
   applicationId: string,
-  newStatus: ApplicationStatus,
+  newStatus: ApplicationStatusChange,
   userId: string,
   role: UserRole
 ) {
@@ -94,13 +155,28 @@ export async function updateApplicationStatus(
     throw new Error("INVALID_STATUS_TRANSITION");
   }
 
-  return prisma.application.update({
-    where: {
-      id: applicationId,
-    },
-    data: {
-      status: newStatus,
-    },
-    select: applicationPublicSelect,
-  });
+  const updatedApplication =
+    await prisma.application.update({
+      where: {
+        id: applicationId,
+      },
+      data: {
+        status: newStatus,
+      },
+      select: applicationPublicSelect,
+    });
+
+  try {
+    await enqueueApplicationStatusChanged(
+      applicationId,
+      newStatus
+    );
+  } catch (error) {
+    console.error(
+      "Failed to enqueue application-status-changed event:",
+      error
+    );
+  }
+
+  return updatedApplication;
 }

@@ -4,7 +4,6 @@ import {
   Response,
   NextFunction,
 } from "express";
-import { prisma } from "../lib/prisma.js";
 import {
   authenticate,
   authorizeRole,
@@ -16,10 +15,13 @@ import {
   updateApplicationStatusSchema,
 } from "../validators/applicationValidator.js";
 import {
+  createApplication,
   getApplicationsForJob,
   updateApplicationStatus,
 } from "../services/applicationService.js";
+import { prisma } from "../lib/prisma.js";
 import { applicationPublicSelect } from "../lib/selects.js";
+
 
 const router = Router();
 
@@ -36,51 +38,31 @@ router.post(
     try {
       const { jobId } = req.body;
 
-      const job = await prisma.job.findUnique({
-        where: {
-          id: jobId,
-        },
-        select: {
-          id: true,
-        },
-      });
-
-      if (!job) {
-        return res.status(404).json({
-          error: "Job not found",
-        });
-      }
-
-      const existingApplication =
-        await prisma.application.findUnique({
-          where: {
-            candidateId_jobId: {
-              candidateId: req.user!.userId,
-              jobId,
-            },
-          },
-          select: {
-            id: true,
-          },
-        });
-
-      if (existingApplication) {
-        return res.status(409).json({
-          error: "You have already applied to this job",
-        });
-      }
-
-      const application =
-        await prisma.application.create({
-          data: {
-            candidateId: req.user!.userId,
-            jobId,
-          },
-          select: applicationPublicSelect,
-        });
+      const application = await createApplication(
+        req.user!.userId,
+        jobId
+      );
 
       res.status(201).json(application);
     } catch (error) {
+      if (error instanceof Error) {
+        if (error.message === "JOB_NOT_FOUND") {
+          return res.status(404).json({
+            error: "Job not found",
+          });
+        }
+
+        if (
+          error.message ===
+          "APPLICATION_ALREADY_EXISTS"
+        ) {
+          return res.status(409).json({
+            error:
+              "You have already applied to this job",
+          });
+        }
+      }
+
       next(error);
     }
   }

@@ -21,15 +21,21 @@ enum ApplicationStatus {
   HIRED
 }
 
+enum NotificationType {
+  APPLICATION_CREATED
+  APPLICATION_STATUS_CHANGED
+}
+
 model User {
-  id           String        @id @default(uuid())
-  email        String        @unique
-  passwordHash String
-  role         UserRole      @default(CANDIDATE)
-  applications Application[]
-  jobs         Job[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id            String         @id @default(uuid())
+  email         String         @unique
+  passwordHash  String
+  role          UserRole       @default(CANDIDATE)
+  applications  Application[]
+  jobs          Job[]
+  notifications Notification[] @relation("NotificationRecipient")
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 }
 
 model Company {
@@ -59,16 +65,33 @@ model Job {
 }
 
 model Application {
-  id          String            @id @default(uuid())
-  candidateId String
-  jobId       String
-  status      ApplicationStatus @default(APPLIED)
-  candidate   User              @relation(fields: [candidateId], references: [id])
-  job         Job               @relation(fields: [jobId], references: [id])
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+  id            String            @id @default(uuid())
+  candidateId   String
+  jobId         String
+  status        ApplicationStatus @default(APPLIED)
+  candidate     User              @relation(fields: [candidateId], references: [id])
+  job           Job               @relation(fields: [jobId], references: [id])
+  notifications Notification[]
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
 
   @@unique([candidateId, jobId])
   @@index([jobId])
   @@index([candidateId])
+}
+
+model Notification {
+  id            String           @id @default(uuid())
+  recipientId   String
+  applicationId String
+  type          NotificationType
+  message       String
+  eventKey      String           @unique
+  readAt        DateTime?
+  recipient     User             @relation("NotificationRecipient", fields: [recipientId], references: [id])
+  application   Application      @relation(fields: [applicationId], references: [id])
+  createdAt     DateTime         @default(now())
+
+  @@index([recipientId, createdAt])
+  @@index([applicationId])
 }

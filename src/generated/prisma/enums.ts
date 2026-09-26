@@ -27,3 +27,11 @@ export const ApplicationStatus = {
 } as const
 
 export type ApplicationStatus = (typeof ApplicationStatus)[keyof typeof ApplicationStatus]
+
+
+export const NotificationType = {
+  APPLICATION_CREATED: 'APPLICATION_CREATED',
+  APPLICATION_STATUS_CHANGED: 'APPLICATION_STATUS_CHANGED'
+} as const
+
+export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType]
