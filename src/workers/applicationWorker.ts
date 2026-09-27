@@ -1,9 +1,14 @@
 import { Worker } from "bullmq";
 import { prisma } from "../lib/prisma.js";
+import { emitNotificationToUser } from "../realtime/socketServer.js";
 
 const redisConnection = {
   host: process.env.REDIS_HOST ?? "localhost",
   port: Number(process.env.REDIS_PORT ?? 6379),
+};
+
+type ApplicationCreatedPayload = {
+  applicationId: string;
 };
 
 type ApplicationStatus =
@@ -11,10 +16,6 @@ type ApplicationStatus =
   | "INTERVIEW"
   | "REJECTED"
   | "HIRED";
-
-type ApplicationCreatedPayload = {
-  applicationId: string;
-};
 
 type ApplicationStatusChangedPayload = {
   applicationId: string;
@@ -64,20 +65,42 @@ async function processApplicationCreated(
   const eventKey =
     `application-created-${application.id}`;
 
-  const notification = await prisma.notification.upsert({
-    where: {
-      eventKey,
-    },
-    update: {},
-    create: {
-      recipientId: application.job.recruiterId,
-      applicationId: application.id,
-      type: "APPLICATION_CREATED",
-      message:
-        `New application received for ${application.job.title}`,
-      eventKey,
-    },
-  });
+  let notification;
+
+  try {
+    notification = await prisma.notification.create({
+      data: {
+        recipientId: application.job.recruiterId,
+        applicationId: application.id,
+        type: "APPLICATION_CREATED",
+        message:
+          `New application received for ${application.job.title}`,
+        eventKey,
+      },
+      select: {
+        id: true,
+        type: true,
+        message: true,
+        applicationId: true,
+        readAt: true,
+        createdAt: true,
+      },
+    });
+  } catch (error: any) {
+    if (error.code === "P2002") {
+      return {
+        processed: false,
+        reason: "ALREADY_PROCESSED",
+      };
+    }
+
+    throw error;
+  }
+
+  emitNotificationToUser(
+    application.job.recruiterId,
+    notification
+  );
 
   return {
     processed: true,
@@ -117,20 +140,42 @@ async function processApplicationStatusChanged(
   const eventKey =
     `application-status-changed-${application.id}-${data.status}`;
 
-  const notification = await prisma.notification.upsert({
-    where: {
-      eventKey,
-    },
-    update: {},
-    create: {
-      recipientId: application.candidateId,
-      applicationId: application.id,
-      type: "APPLICATION_STATUS_CHANGED",
-      message:
-        `Your application for ${application.job.title} moved to ${data.status}`,
-      eventKey,
-    },
-  });
+  let notification;
+
+  try {
+    notification = await prisma.notification.create({
+      data: {
+        recipientId: application.candidateId,
+        applicationId: application.id,
+        type: "APPLICATION_STATUS_CHANGED",
+        message:
+          `Your application for ${application.job.title} moved to ${data.status}`,
+        eventKey,
+      },
+      select: {
+        id: true,
+        type: true,
+        message: true,
+        applicationId: true,
+        readAt: true,
+        createdAt: true,
+      },
+    });
+  } catch (error: any) {
+    if (error.code === "P2002") {
+      return {
+        processed: false,
+        reason: "ALREADY_PROCESSED",
+      };
+    }
+
+    throw error;
+  }
+
+  emitNotificationToUser(
+    application.candidateId,
+    notification
+  );
 
   return {
     processed: true,
