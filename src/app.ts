@@ -5,6 +5,7 @@ import { authenticate, AuthenticatedRequest } from "./middleware/auth.js";
 import companyRouter from "./routes/company.js";
 import jobRouter from "./routes/job.js";
 import applicationRouter from "./routes/application.js";
+import notificationRouter from "./routes/notification.js";
 
 const app = express();
 
@@ -17,6 +18,8 @@ app.use("/api/auth", authRouter);
 app.use("/api/companies", companyRouter);
 
 app.use("/api/applications", applicationRouter);
+
+app.use("/api/notifications", notificationRouter);
 
 app.get("/health", (_req, res) => {
   res.json({

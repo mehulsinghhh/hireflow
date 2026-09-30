@@ -41,3 +41,12 @@ export const applicationPublicSelect = {
     select: jobPublicSelect,
   },
 } satisfies Prisma.ApplicationSelect;
+
+export const notificationPublicSelect = {
+  id: true,
+  type: true,
+  message: true,
+  applicationId: true,
+  readAt: true,
+  createdAt: true,
+} satisfies Prisma.NotificationSelect;
