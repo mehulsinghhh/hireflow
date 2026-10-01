@@ -180,3 +180,19 @@ export async function updateApplicationStatus(
 
   return updatedApplication;
 }
+
+export async function getApplicationsForRecruiter(
+  recruiterId: string
+) {
+  return prisma.application.findMany({
+    where: {
+      job: {
+        recruiterId,
+      },
+    },
+    select: applicationPublicSelect,
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+}

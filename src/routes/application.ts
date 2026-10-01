@@ -17,6 +17,7 @@ import {
 import {
   createApplication,
   getApplicationsForJob,
+  getApplicationsForRecruiter,
   updateApplicationStatus,
 } from "../services/applicationService.js";
 import { prisma } from "../lib/prisma.js";
@@ -88,6 +89,28 @@ router.get(
             createdAt: "desc",
           },
         });
+
+      res.status(200).json(applications);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+router.get(
+  "/my-jobs",
+  authenticate,
+  authorizeRole("RECRUITER"),
+  async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const applications =
+        await getApplicationsForRecruiter(
+          req.user!.userId
+        );
 
       res.status(200).json(applications);
     } catch (error) {
