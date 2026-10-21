@@ -6,8 +6,15 @@ import companyRouter from "./routes/company.js";
 import jobRouter from "./routes/job.js";
 import applicationRouter from "./routes/application.js";
 import notificationRouter from "./routes/notification.js";
+import cors from "cors";
 
 const app = express();
+
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+  })
+);
 
 app.use(express.json());
 
