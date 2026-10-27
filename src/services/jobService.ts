@@ -6,6 +6,7 @@ import {
   deleteCacheByPattern,
 } from "./cacheService.js";
 
+
 export async function createJob(
   title: string,
   description: string,
@@ -104,6 +105,73 @@ console.log(`Redis cache MISS: ${cacheKey}`);
 await setCache(cacheKey, result);
 
 return result;
+}
+
+export async function getJobsForRecruiter(options: {
+  recruiterId: string;
+  page: number;
+  limit: number;
+}) {
+  const { recruiterId, page, limit } = options;
+
+  // Keep each recruiter's cached results separate.
+  const cacheKey = `jobs:recruiter:${JSON.stringify({
+    recruiterId,
+    page,
+    limit,
+  })}`;
+
+  const cached = await getCache<{
+    jobs: unknown[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+  }>(cacheKey);
+
+  if (cached) {
+    console.log(`Redis cache HIT: ${cacheKey}`);
+    return cached;
+  }
+
+  console.log(`Redis cache MISS: ${cacheKey}`);
+
+  const skip = (page - 1) * limit;
+
+  // Ownership is enforced in the database query, before pagination.
+  const where = { recruiterId };
+
+  const [jobs, total] = await Promise.all([
+    prisma.job.findMany({
+      where,
+      skip,
+      take: limit,
+      select: jobPublicSelect,
+      orderBy: {
+        createdAt: "desc",
+      },
+    }),
+
+    prisma.job.count({
+      where,
+    }),
+  ]);
+
+  const result = {
+    jobs,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+
+  await setCache(cacheKey, result);
+
+  return result;
 }
 
 export async function getJobById(id: string) {

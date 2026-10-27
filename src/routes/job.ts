@@ -2,6 +2,7 @@ import { Router, Request } from "express";
 import {
   createJob,
   getJobs,
+  getJobsForRecruiter,
   getJobById,
   updateJob,
   deleteJob,
@@ -15,6 +16,48 @@ import {
 import { getApplicationsForJob } from "../services/applicationService.js";
 
 const router = Router();
+
+router.get(
+  "/my-jobs",
+  authenticate,
+  authorizeRole("RECRUITER"),
+  async (req: AuthenticatedRequest, res, next) => {
+    try {
+      const page = Number(req.query.page) || 1;
+      const limit = Number(req.query.limit) || 10;
+
+      if (
+        !Number.isInteger(page) ||
+        page < 1 ||
+        !Number.isInteger(limit) ||
+        limit < 1 ||
+        limit > 100
+      ) {
+        return res.status(400).json({
+          error: "page must be a positive integer and limit must be between 1 and 100",
+        });
+      }
+
+      const recruiterId = req.user?.userId;
+
+      if (!recruiterId) {
+        return res.status(401).json({
+          error: "Authentication required",
+        });
+      }
+
+      const result = await getJobsForRecruiter({
+        recruiterId,
+        page,
+        limit,
+      });
+
+      return res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
 router.get("/", async (req, res) => {
   const page = Number(req.query.page) || 1;
