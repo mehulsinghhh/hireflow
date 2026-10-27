@@ -6,6 +6,7 @@ import companyRouter from "./routes/company.js";
 import jobRouter from "./routes/job.js";
 import applicationRouter from "./routes/application.js";
 import notificationRouter from "./routes/notification.js";
+import candidateProfileRouter from "./routes/candidateProfile.js";
 import cors from "cors";
 
 const app = express();
@@ -27,6 +28,8 @@ app.use("/api/companies", companyRouter);
 app.use("/api/applications", applicationRouter);
 
 app.use("/api/notifications", notificationRouter);
+
+app.use("/api/candidate-profile", candidateProfileRouter);
 
 app.get("/health", (_req, res) => {
   res.json({

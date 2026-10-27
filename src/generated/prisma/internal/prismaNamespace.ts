@@ -401,7 +401,8 @@ export const ModelName = {
   Company: 'Company',
   Job: 'Job',
   Application: 'Application',
-  Notification: 'Notification'
+  Notification: 'Notification',
+  CandidateProfile: 'CandidateProfile'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -417,7 +418,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "company" | "job" | "application" | "notification"
+    modelProps: "user" | "company" | "job" | "application" | "notification" | "candidateProfile"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -791,6 +792,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    CandidateProfile: {
+      payload: Prisma.$CandidateProfilePayload<ExtArgs>
+      fields: Prisma.CandidateProfileFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CandidateProfileFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CandidateProfilePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CandidateProfileFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CandidateProfilePayload>
+        }
+        findFirst: {
+          args: Prisma.CandidateProfileFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CandidateProfilePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CandidateProfileFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CandidateProfilePayload>
+        }
+        findMany: {
+          args: Prisma.CandidateProfileFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CandidateProfilePayload>[]
+        }
+        create: {
+          args: Prisma.CandidateProfileCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CandidateProfilePayload>
+        }
+        createMany: {
+          args: Prisma.CandidateProfileCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CandidateProfileCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CandidateProfilePayload>[]
+        }
+        delete: {
+          args: Prisma.CandidateProfileDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CandidateProfilePayload>
+        }
+        update: {
+          args: Prisma.CandidateProfileUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CandidateProfilePayload>
+        }
+        deleteMany: {
+          args: Prisma.CandidateProfileDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CandidateProfileUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CandidateProfileUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CandidateProfilePayload>[]
+        }
+        upsert: {
+          args: Prisma.CandidateProfileUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CandidateProfilePayload>
+        }
+        aggregate: {
+          args: Prisma.CandidateProfileAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCandidateProfile>
+        }
+        groupBy: {
+          args: Prisma.CandidateProfileGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CandidateProfileGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CandidateProfileCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CandidateProfileCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -891,6 +966,30 @@ export const NotificationScalarFieldEnum = {
 } as const
 
 export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
+
+
+export const CandidateProfileScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  firstName: 'firstName',
+  lastName: 'lastName',
+  phone: 'phone',
+  location: 'location',
+  headline: 'headline',
+  summary: 'summary',
+  skills: 'skills',
+  linkedinUrl: 'linkedinUrl',
+  portfolioUrl: 'portfolioUrl',
+  resumeStorageKey: 'resumeStorageKey',
+  resumeOriginalName: 'resumeOriginalName',
+  resumeMimeType: 'resumeMimeType',
+  resumeSizeBytes: 'resumeSizeBytes',
+  resumeUploadedAt: 'resumeUploadedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CandidateProfileScalarFieldEnum = (typeof CandidateProfileScalarFieldEnum)[keyof typeof CandidateProfileScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1004,6 +1103,20 @@ export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'In
  * Reference to a field of type 'Int[]'
  */
 export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Float'
+ */
+export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
+    
+
+
+/**
+ * Reference to a field of type 'Float[]'
+ */
+export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
     
 
 /**
@@ -1162,6 +1275,7 @@ export type GlobalOmitConfig = {
   job?: Prisma.JobOmit
   application?: Prisma.ApplicationOmit
   notification?: Prisma.NotificationOmit
+  candidateProfile?: Prisma.CandidateProfileOmit
 }
 
 /* Types for Logging */

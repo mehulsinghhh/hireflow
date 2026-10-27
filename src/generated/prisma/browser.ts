@@ -42,3 +42,8 @@ export type Application = Prisma.ApplicationModel
  * 
  */
 export type Notification = Prisma.NotificationModel
+/**
+ * Model CandidateProfile
+ * 
+ */
+export type CandidateProfile = Prisma.CandidateProfileModel

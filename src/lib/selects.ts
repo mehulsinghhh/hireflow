@@ -50,3 +50,24 @@ export const notificationPublicSelect = {
   readAt: true,
   createdAt: true,
 } satisfies Prisma.NotificationSelect;
+
+
+export const candidateProfilePublicSelect = {
+  id: true,
+  userId: true,
+  firstName: true,
+  lastName: true,
+  phone: true,
+  location: true,
+  headline: true,
+  summary: true,
+  skills: true,
+  linkedinUrl: true,
+  portfolioUrl: true,
+  resumeOriginalName: true,
+  resumeMimeType: true,
+  resumeSizeBytes: true,
+  resumeUploadedAt: true,
+  createdAt: true,
+  updatedAt: true,
+} satisfies Prisma.CandidateProfileSelect;

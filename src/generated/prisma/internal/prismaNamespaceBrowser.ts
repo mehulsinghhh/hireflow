@@ -55,7 +55,8 @@ export const ModelName = {
   Company: 'Company',
   Job: 'Job',
   Application: 'Application',
-  Notification: 'Notification'
+  Notification: 'Notification',
+  CandidateProfile: 'CandidateProfile'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -135,6 +136,30 @@ export const NotificationScalarFieldEnum = {
 } as const
 
 export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
+
+
+export const CandidateProfileScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  firstName: 'firstName',
+  lastName: 'lastName',
+  phone: 'phone',
+  location: 'location',
+  headline: 'headline',
+  summary: 'summary',
+  skills: 'skills',
+  linkedinUrl: 'linkedinUrl',
+  portfolioUrl: 'portfolioUrl',
+  resumeStorageKey: 'resumeStorageKey',
+  resumeOriginalName: 'resumeOriginalName',
+  resumeMimeType: 'resumeMimeType',
+  resumeSizeBytes: 'resumeSizeBytes',
+  resumeUploadedAt: 'resumeUploadedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CandidateProfileScalarFieldEnum = (typeof CandidateProfileScalarFieldEnum)[keyof typeof CandidateProfileScalarFieldEnum]
 
 
 export const SortOrder = {
