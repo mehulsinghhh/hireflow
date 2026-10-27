@@ -193,6 +193,7 @@ export type UserWhereInput = {
   applications?: Prisma.ApplicationListRelationFilter
   jobs?: Prisma.JobListRelationFilter
   notifications?: Prisma.NotificationListRelationFilter
+  candidateProfile?: Prisma.XOR<Prisma.CandidateProfileNullableScalarRelationFilter, Prisma.CandidateProfileWhereInput> | null
 }
 
 export type UserOrderByWithRelationInput = {
@@ -205,6 +206,7 @@ export type UserOrderByWithRelationInput = {
   applications?: Prisma.ApplicationOrderByRelationAggregateInput
   jobs?: Prisma.JobOrderByRelationAggregateInput
   notifications?: Prisma.NotificationOrderByRelationAggregateInput
+  candidateProfile?: Prisma.CandidateProfileOrderByWithRelationInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -220,6 +222,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   applications?: Prisma.ApplicationListRelationFilter
   jobs?: Prisma.JobListRelationFilter
   notifications?: Prisma.NotificationListRelationFilter
+  candidateProfile?: Prisma.XOR<Prisma.CandidateProfileNullableScalarRelationFilter, Prisma.CandidateProfileWhereInput> | null
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -256,6 +259,7 @@ export type UserCreateInput = {
   applications?: Prisma.ApplicationCreateNestedManyWithoutCandidateInput
   jobs?: Prisma.JobCreateNestedManyWithoutRecruiterInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutRecipientInput
+  candidateProfile?: Prisma.CandidateProfileCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -268,6 +272,7 @@ export type UserUncheckedCreateInput = {
   applications?: Prisma.ApplicationUncheckedCreateNestedManyWithoutCandidateInput
   jobs?: Prisma.JobUncheckedCreateNestedManyWithoutRecruiterInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientInput
+  candidateProfile?: Prisma.CandidateProfileUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -280,6 +285,7 @@ export type UserUpdateInput = {
   applications?: Prisma.ApplicationUpdateManyWithoutCandidateNestedInput
   jobs?: Prisma.JobUpdateManyWithoutRecruiterNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutRecipientNestedInput
+  candidateProfile?: Prisma.CandidateProfileUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -292,6 +298,7 @@ export type UserUncheckedUpdateInput = {
   applications?: Prisma.ApplicationUncheckedUpdateManyWithoutCandidateNestedInput
   jobs?: Prisma.JobUncheckedUpdateManyWithoutRecruiterNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientNestedInput
+  candidateProfile?: Prisma.CandidateProfileUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -414,6 +421,20 @@ export type UserUpdateOneRequiredWithoutNotificationsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutNotificationsInput, Prisma.UserUpdateWithoutNotificationsInput>, Prisma.UserUncheckedUpdateWithoutNotificationsInput>
 }
 
+export type UserCreateNestedOneWithoutCandidateProfileInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCandidateProfileInput, Prisma.UserUncheckedCreateWithoutCandidateProfileInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCandidateProfileInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutCandidateProfileNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCandidateProfileInput, Prisma.UserUncheckedCreateWithoutCandidateProfileInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCandidateProfileInput
+  upsert?: Prisma.UserUpsertWithoutCandidateProfileInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutCandidateProfileInput, Prisma.UserUpdateWithoutCandidateProfileInput>, Prisma.UserUncheckedUpdateWithoutCandidateProfileInput>
+}
+
 export type UserCreateWithoutJobsInput = {
   id?: string
   email: string
@@ -423,6 +444,7 @@ export type UserCreateWithoutJobsInput = {
   updatedAt?: Date | string
   applications?: Prisma.ApplicationCreateNestedManyWithoutCandidateInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutRecipientInput
+  candidateProfile?: Prisma.CandidateProfileCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutJobsInput = {
@@ -434,6 +456,7 @@ export type UserUncheckedCreateWithoutJobsInput = {
   updatedAt?: Date | string
   applications?: Prisma.ApplicationUncheckedCreateNestedManyWithoutCandidateInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientInput
+  candidateProfile?: Prisma.CandidateProfileUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutJobsInput = {
@@ -461,6 +484,7 @@ export type UserUpdateWithoutJobsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   applications?: Prisma.ApplicationUpdateManyWithoutCandidateNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutRecipientNestedInput
+  candidateProfile?: Prisma.CandidateProfileUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutJobsInput = {
@@ -472,6 +496,7 @@ export type UserUncheckedUpdateWithoutJobsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   applications?: Prisma.ApplicationUncheckedUpdateManyWithoutCandidateNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientNestedInput
+  candidateProfile?: Prisma.CandidateProfileUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutApplicationsInput = {
@@ -483,6 +508,7 @@ export type UserCreateWithoutApplicationsInput = {
   updatedAt?: Date | string
   jobs?: Prisma.JobCreateNestedManyWithoutRecruiterInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutRecipientInput
+  candidateProfile?: Prisma.CandidateProfileCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutApplicationsInput = {
@@ -494,6 +520,7 @@ export type UserUncheckedCreateWithoutApplicationsInput = {
   updatedAt?: Date | string
   jobs?: Prisma.JobUncheckedCreateNestedManyWithoutRecruiterInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientInput
+  candidateProfile?: Prisma.CandidateProfileUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutApplicationsInput = {
@@ -521,6 +548,7 @@ export type UserUpdateWithoutApplicationsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   jobs?: Prisma.JobUpdateManyWithoutRecruiterNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutRecipientNestedInput
+  candidateProfile?: Prisma.CandidateProfileUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutApplicationsInput = {
@@ -532,6 +560,7 @@ export type UserUncheckedUpdateWithoutApplicationsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   jobs?: Prisma.JobUncheckedUpdateManyWithoutRecruiterNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientNestedInput
+  candidateProfile?: Prisma.CandidateProfileUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutNotificationsInput = {
@@ -543,6 +572,7 @@ export type UserCreateWithoutNotificationsInput = {
   updatedAt?: Date | string
   applications?: Prisma.ApplicationCreateNestedManyWithoutCandidateInput
   jobs?: Prisma.JobCreateNestedManyWithoutRecruiterInput
+  candidateProfile?: Prisma.CandidateProfileCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutNotificationsInput = {
@@ -554,6 +584,7 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   updatedAt?: Date | string
   applications?: Prisma.ApplicationUncheckedCreateNestedManyWithoutCandidateInput
   jobs?: Prisma.JobUncheckedCreateNestedManyWithoutRecruiterInput
+  candidateProfile?: Prisma.CandidateProfileUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutNotificationsInput = {
@@ -581,6 +612,7 @@ export type UserUpdateWithoutNotificationsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   applications?: Prisma.ApplicationUpdateManyWithoutCandidateNestedInput
   jobs?: Prisma.JobUpdateManyWithoutRecruiterNestedInput
+  candidateProfile?: Prisma.CandidateProfileUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutNotificationsInput = {
@@ -592,6 +624,71 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   applications?: Prisma.ApplicationUncheckedUpdateManyWithoutCandidateNestedInput
   jobs?: Prisma.JobUncheckedUpdateManyWithoutRecruiterNestedInput
+  candidateProfile?: Prisma.CandidateProfileUncheckedUpdateOneWithoutUserNestedInput
+}
+
+export type UserCreateWithoutCandidateProfileInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  role?: $Enums.UserRole
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  applications?: Prisma.ApplicationCreateNestedManyWithoutCandidateInput
+  jobs?: Prisma.JobCreateNestedManyWithoutRecruiterInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutRecipientInput
+}
+
+export type UserUncheckedCreateWithoutCandidateProfileInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  role?: $Enums.UserRole
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  applications?: Prisma.ApplicationUncheckedCreateNestedManyWithoutCandidateInput
+  jobs?: Prisma.JobUncheckedCreateNestedManyWithoutRecruiterInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientInput
+}
+
+export type UserCreateOrConnectWithoutCandidateProfileInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutCandidateProfileInput, Prisma.UserUncheckedCreateWithoutCandidateProfileInput>
+}
+
+export type UserUpsertWithoutCandidateProfileInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutCandidateProfileInput, Prisma.UserUncheckedUpdateWithoutCandidateProfileInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutCandidateProfileInput, Prisma.UserUncheckedCreateWithoutCandidateProfileInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutCandidateProfileInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutCandidateProfileInput, Prisma.UserUncheckedUpdateWithoutCandidateProfileInput>
+}
+
+export type UserUpdateWithoutCandidateProfileInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  applications?: Prisma.ApplicationUpdateManyWithoutCandidateNestedInput
+  jobs?: Prisma.JobUpdateManyWithoutRecruiterNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutRecipientNestedInput
+}
+
+export type UserUncheckedUpdateWithoutCandidateProfileInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  applications?: Prisma.ApplicationUncheckedUpdateManyWithoutCandidateNestedInput
+  jobs?: Prisma.JobUncheckedUpdateManyWithoutRecruiterNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientNestedInput
 }
 
 
@@ -653,6 +750,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   applications?: boolean | Prisma.User$applicationsArgs<ExtArgs>
   jobs?: boolean | Prisma.User$jobsArgs<ExtArgs>
   notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
+  candidateProfile?: boolean | Prisma.User$candidateProfileArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -688,6 +786,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   applications?: boolean | Prisma.User$applicationsArgs<ExtArgs>
   jobs?: boolean | Prisma.User$jobsArgs<ExtArgs>
   notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
+  candidateProfile?: boolean | Prisma.User$candidateProfileArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -699,6 +798,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     applications: Prisma.$ApplicationPayload<ExtArgs>[]
     jobs: Prisma.$JobPayload<ExtArgs>[]
     notifications: Prisma.$NotificationPayload<ExtArgs>[]
+    candidateProfile: Prisma.$CandidateProfilePayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1104,6 +1204,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   applications<T extends Prisma.User$applicationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$applicationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ApplicationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   jobs<T extends Prisma.User$jobsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$jobsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$JobPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   notifications<T extends Prisma.User$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  candidateProfile<T extends Prisma.User$candidateProfileArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$candidateProfileArgs<ExtArgs>>): Prisma.Prisma__CandidateProfileClient<runtime.Types.Result.GetResult<Prisma.$CandidateProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1601,6 +1702,25 @@ export type User$notificationsArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   distinct?: Prisma.NotificationScalarFieldEnum | Prisma.NotificationScalarFieldEnum[]
+}
+
+/**
+ * User.candidateProfile
+ */
+export type User$candidateProfileArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CandidateProfile
+   */
+  select?: Prisma.CandidateProfileSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CandidateProfile
+   */
+  omit?: Prisma.CandidateProfileOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CandidateProfileInclude<ExtArgs> | null
+  where?: Prisma.CandidateProfileWhereInput
 }
 
 /**

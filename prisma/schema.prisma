@@ -34,6 +34,7 @@ model User {
   applications  Application[]
   jobs          Job[]
   notifications Notification[] @relation("NotificationRecipient")
+  candidateProfile CandidateProfile?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 }
@@ -94,4 +95,27 @@ model Notification {
 
   @@index([recipientId, createdAt])
   @@index([applicationId])
+}
+
+model CandidateProfile {
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  firstName    String
+  lastName     String
+  phone        String
+  location     String?
+  headline     String?
+  summary      String?
+  skills       String[] @default([])
+  linkedinUrl  String?
+  portfolioUrl String?
+  resumeStorageKey   String?
+  resumeOriginalName String?
+  resumeMimeType     String?
+  resumeSizeBytes    Int?
+  resumeUploadedAt   DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

@@ -7,6 +7,7 @@ beforeEach(async () => {
   await connectRedis();
 
   await prisma.notification.deleteMany();
+  await prisma.candidateProfile.deleteMany();
   await prisma.application.deleteMany();
   await prisma.job.deleteMany();
   await prisma.company.deleteMany();
